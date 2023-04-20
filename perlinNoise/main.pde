@@ -1,4 +1,4 @@
-ArrayList<Integer> permutation;
+Perlin perlinObj;
 
 void setup()
 {
@@ -6,7 +6,20 @@ void setup()
   background(255);
   loadPixels();
   
-  Perlin perlinObj = new Perlin();
+  perlinObj = new Perlin();
   perlinObj.updateNoise();
 
+}
+
+void draw() {}
+
+
+void keyTyped()
+{
+  
+  if (key == 'r')
+  {
+    perlinObj.regeneratePermutation();
+  }
+  
 }

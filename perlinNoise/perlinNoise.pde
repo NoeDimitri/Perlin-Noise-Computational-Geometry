@@ -6,10 +6,18 @@ final Integer PERMUTATION_SIZE = 255;
 public class Perlin
 {
   private ArrayList<Integer> permutation;
+  private Float amplitude;
+  private Float frequency;
+  private int numOctaves;
   
   Perlin()
   {
       permutation = createPermutation();
+      
+      // Default values
+      frequency = 0.005;
+      amplitude =  1.0;
+      numOctaves = 8;
     
   }
   
@@ -61,7 +69,7 @@ public class Perlin
   }
   
   // Function to call to generate a noise value
-  public float Noise2d(float x, float y, ArrayList<Integer> permutation)
+  public float Noise2d(float x, float y)
   { 
     // For determining which cell we are in
     int X = (int)Math.floor(x) % PERMUTATION_SIZE;
@@ -102,7 +110,7 @@ public class Perlin
     Float result = 0.0;
     for(int octave = 0; octave < numOctaves; octave++)
     {
-       float n = amplitude * Noise2d(x * frequency, y * frequency, permutation);
+       float n = amplitude * Noise2d(x * frequency, y * frequency);
        result += n;
        
        amplitude *= 0.5;
@@ -126,12 +134,12 @@ public class Perlin
          
           float n = octaveNoise(x, y, 8, 1.0, 0.005); 
            n += 1.0;
-           n /= 2.0;
+           n *= 0.5;
            
            color pixelColor;
            
            float c = Math.round(255*n);
-           pixelColor = color(c,c,c);
+           pixelColor = color(c);
            
            pixels[x + y*width] = pixelColor;
            
@@ -144,5 +152,6 @@ public class Perlin
   public void regeneratePermutation()
   {
     permutation = createPermutation();
+    updateNoise();
   }
 }
