@@ -61,10 +61,10 @@ public float Noise2d(float x, float y, ArrayList<Integer> permutation)
   float xf = (float)(x-Math.floor(x));
   float yf = (float)(y-Math.floor(y));
   
-  PVector topRight = new PVector(xf-1.0, yf);
-  PVector topLeft = new PVector(xf, yf);
-  PVector bottomRight = new PVector(xf-1.0, yf-1.0);
-  PVector bottomLeft = new PVector(xf, yf-1.0);
+  PVector topRight = new PVector(xf-1.0, yf-1.0);
+  PVector topLeft = new PVector(xf, yf-1.0);
+  PVector bottomRight = new PVector(xf-1.0, yf);
+  PVector bottomLeft = new PVector(xf, yf);
   
   Integer valueTopRight = permutation.get(permutation.get(X+1)+Y+1);
   Integer valueTopLeft = permutation.get(permutation.get(X)+Y+1);
@@ -84,33 +84,4 @@ public float Noise2d(float x, float y, ArrayList<Integer> permutation)
     lerp(dotBottomRight, dotTopRight, v),
     u
   );
-}
-
-void setup()
-{
-  size(300, 300);
-  background(255);
-  ArrayList<Integer> permutation = createPermutation();
-  loadPixels();
-
-  for(int y = 0; y < 300; y++)
-  {
-     for(int x = 0; x < 300; x++)
-     {
-       
-        float n = Noise2d(x*0.01, y*0.01, permutation); 
-         n += 1.0;
-         n /= 2.0;
-         
-         float c = Math.round(255*n);
-         color greyscale = color(c,c,c);
-         
-         pixels[x + y*300] = greyscale;
-         
-       
-     }
-    
-  }
-  updatePixels();
-  
 }
