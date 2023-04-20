@@ -9,6 +9,8 @@ public class Perlin
   private Float amplitude;
   private Float frequency;
   private int numOctaves;
+  private float amplitudeDecayRate;
+  private float frequencyGrowthRate;
   
   Perlin()
   {
@@ -16,9 +18,23 @@ public class Perlin
       
       // Default values
       frequency = 0.005;
+      
+      // Around 5 is a good amount
       amplitude =  1.0;
-      numOctaves = 8;
+      numOctaves = 3;
+      amplitudeDecayRate = 0.5;
+      frequencyGrowthRate = 2.0;
     
+  }
+  
+  Perlin(float frequencyBase, float amplitudeBase, int numOctavesBase)
+  {
+      permutation = createPermutation();
+      
+      // Default values
+      frequency = frequencyBase;
+      amplitude =  amplitudeBase;
+      numOctaves = numOctavesBase;
   }
   
   // For creating and shuffling permutation array List
@@ -105,7 +121,7 @@ public class Perlin
   }
 
   // Generates Noise up to a certain octave
-  public Float octaveNoise(int x, int y, int numOctaves, Float amplitude, Float frequency)
+  public Float octaveNoise(int x, int y, float amplitude, float frequency)
   {
     Float result = 0.0;
     for(int octave = 0; octave < numOctaves; octave++)
@@ -113,8 +129,9 @@ public class Perlin
        float n = amplitude * Noise2d(x * frequency, y * frequency);
        result += n;
        
-       amplitude *= 0.5;
-       frequency *= 2.0;
+       // two hyper parameters here, can maybe modify rate that these change
+       amplitude *= amplitudeDecayRate;
+       frequency *= frequencyGrowthRate;
     }
     
     // just checks to make sure we do not overflow
@@ -132,7 +149,7 @@ public class Perlin
        for(int x = 0; x < width; x++)
        {
          
-          float n = octaveNoise(x, y, 8, 1.0, 0.005); 
+          float n = octaveNoise(x, y, amplitude, frequency); 
            n += 1.0;
            n *= 0.5;
            
@@ -151,7 +168,62 @@ public class Perlin
   
   public void regeneratePermutation()
   {
+    println("generating new permutation");
     permutation = createPermutation();
     updateNoise();
   }
+  
+  // setter method for changing the octave
+  public void modifyOctave(int dif)
+  {
+      // add dif and make sure it's at least 1
+      perlinObj.numOctaves = max(numOctaves + dif, 1);
+      println("Modified number of octaves: " + numOctaves);
+      perlinObj.updateNoise();  
+  }
+  
+  public void modifyFrequency(float dif)
+  {
+      
+      if (perlinObj.frequency + dif <= 0)
+      {
+         println("Error: Negative frequency");
+         return;
+      }
+      frequency += dif;
+      println(String.format("Modified frequency: %.3f", frequency));
+      perlinObj.updateNoise();  
+  }
+  
+  public void modifyAmplitude(float dif)
+  {
+      perlinObj.amplitude += dif;
+      println("Modified amplitude: " + amplitude);
+      perlinObj.updateNoise();  
+  }
+  
+  public void modifyAmplitudeDecay(float dif)
+  {
+      if (perlinObj.amplitudeDecayRate + dif <= 0)
+      {
+         println("Error: invalid amplitude decay");
+         return;
+      }
+      perlinObj.amplitudeDecayRate += dif;
+      println(String.format("Modified amplitudeDecayRate: %.2f", amplitudeDecayRate));
+      perlinObj.updateNoise();  
+  }
+  
+  public void modifyfrequencyGrowthRate(float dif)
+  {
+      if (perlinObj.frequencyGrowthRate + dif <= 0)
+      {
+         println("Error: invalid amplitude decay");
+         return;
+      }
+      perlinObj.frequencyGrowthRate += dif;
+      println(String.format("Modified frequencyGrowthRate: %.2f", frequencyGrowthRate));
+      perlinObj.updateNoise();  
+  }
+  
 }
