@@ -205,6 +205,19 @@ public class Perlin
     updateNoise();
   }
   
+  // Yoinked this code off the internet heheh
+  public void testRuntime()
+  {
+      long startTimeNanoSecond = System.nanoTime();
+      long startTimeMilliSecond = System.currentTimeMillis();
+      long endTimeNanoSecond = System.nanoTime();
+      long endTimeMilliSecond = System.currentTimeMillis();
+      System.out.println("Time Taken in "+(endTimeNanoSecond - startTimeNanoSecond) + " ns");
+      System.out.println("Time Taken in "+(endTimeMilliSecond - startTimeMilliSecond) + " ms");
+  }
+  
+  // The Code below are simple different setter functions :D
+  
   // setter method for changing the octave
   public void modifyOctave(int dif)
   {

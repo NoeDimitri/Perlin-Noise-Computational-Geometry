@@ -53,6 +53,9 @@ void keyTyped()
     case ' ':
       perlinObj.changeTerrainMode();
       break;
+    case 'z':
+      perlinObj.testRuntime();
+      break;
     
   }
   
