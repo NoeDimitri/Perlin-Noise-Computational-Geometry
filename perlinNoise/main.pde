@@ -33,7 +33,6 @@ void keyTyped()
         case -1:
           println("Mode modified: Subtracting");
           break;
-        
       }
       break;
     case 'u':
@@ -51,6 +50,9 @@ void keyTyped()
     case '[':
       perlinObj.modifyfrequencyGrowthRate(0.1*modifyMode);
       break; 
+    case ' ':
+      perlinObj.changeTerrainMode();
+      break;
     
   }
   

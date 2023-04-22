@@ -3,6 +3,12 @@ import java.lang.Math;
 
 final Integer PERMUTATION_SIZE = 255;
 
+//public interface colorInterface{
+ 
+//  color selectColor(int value);
+  
+//}
+
 public class Perlin
 {
   private ArrayList<Integer> permutation;
@@ -11,6 +17,7 @@ public class Perlin
   private int numOctaves;
   private float amplitudeDecayRate;
   private float frequencyGrowthRate;
+  private int colorMode;
   
   Perlin()
   {
@@ -20,10 +27,12 @@ public class Perlin
       frequency = 0.005;
       
       // Around 5 is a good amount
-      amplitude =  1.0;
+      amplitude =  2.0;
       numOctaves = 3;
       amplitudeDecayRate = 0.5;
       frequencyGrowthRate = 2.0;
+      
+      colorMode = 2;
     
   }
   
@@ -132,11 +141,12 @@ public class Perlin
        // two hyper parameters here, can maybe modify rate that these change
        amplitude *= amplitudeDecayRate;
        frequency *= frequencyGrowthRate;
+      result = min(1, result);
+      result = max(-1, result);
     }
     
     // just checks to make sure we do not overflow
-    result = min(1, result);
-    result = max(-1, result);
+
     
     return result;
   }
@@ -153,10 +163,7 @@ public class Perlin
            n += 1.0;
            n *= 0.5;
            
-           color pixelColor;
-           
-           float c = Math.round(255*n);
-           pixelColor = color(c);
+           color pixelColor = selectColor(n);
            
            pixels[x + y*width] = pixelColor;
            
@@ -164,6 +171,31 @@ public class Perlin
       
     }
     updatePixels();
+  }
+  
+  private color selectColor(float noiseValue)
+  {
+    switch(colorMode)
+    {
+      case 0:
+        float c = Math.round(255*noiseValue);
+        return(color(c));
+      case 1:
+        if(noiseValue > 0.80) return color(255);
+        //else if (noiseValue > 0.001) return color(#363636);
+        //else return color(#66ccff);
+        else return color(#363636);
+      case 2:
+        //if (noiseValue >= 0.99) return color (#0066cc);
+        if(noiseValue >= 0.80) return color(#3399ff);
+        else if (noiseValue >= 0.65) return color(#ffcc99);
+        else if (noiseValue >= 0.25) return color(#00cc66);
+        else if (noiseValue >= 0.04) return color(#009933);
+        else return color(#336600);
+    }
+    
+    float c = Math.round(255*noiseValue);
+    return(color(c));
   }
   
   public void regeneratePermutation()
@@ -225,5 +257,26 @@ public class Perlin
       println(String.format("Modified frequencyGrowthRate: %.2f", frequencyGrowthRate));
       perlinObj.updateNoise();  
   }
+  
+  public void changeTerrainMode()
+  {
+    colorMode = (colorMode + 1)%3;
+    updateNoise();
+    
+    switch(colorMode)
+    {
+      case 0:
+        println("Terrain Mode: Display Noise");
+        break;
+      case 1:
+        println("Terrain Mode: Caves");
+        break;
+      case 2:
+        println("Terrain Mode: Lakes");
+        break;
+    }
+    
+  }
+  
   
 }
