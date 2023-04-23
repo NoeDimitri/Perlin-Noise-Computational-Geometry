@@ -1,6 +1,7 @@
 Noise perlinObj;
 Noise valueObj;
 int modifyMode;
+boolean perlinOn;
 
 // Defaults for the noise objects
 Float amplitudeDefault = .005;
@@ -17,12 +18,13 @@ void setup()
   background(255);
   loadPixels();
   
-  //perlinObj = new Noise();
   perlinObj = new Noise(amplitudeDefault, frequencyDefault, numOctavesDefault, amplitudeDecayRateDefault, frequencyGrowthRateDefault, colorModeDefault, 0);
   valueObj = new Noise(amplitudeDefault, frequencyDefault, numOctavesDefault, amplitudeDecayRateDefault, frequencyGrowthRateDefault, colorModeDefault, 1);
+  
   perlinObj.updateNoise();
 
   modifyMode = 1;
+  perlinOn = true;
 }
 
 void draw() {}
@@ -39,13 +41,17 @@ void draw() {}
  *  '[' = Modifies frequency growth rate
  *  SPACE = Toggles the display color mode (basic noise, caves, lakes)
  *  'z' = Prints the runtime to console for generating the noise
+ *  't' = Toggles between using the Perlin Noise and Value Noise
  */
 void keyTyped()
 {
   switch(key)
   {
     case 'r':
-      perlinObj.regeneratePermutation();
+      if (perlinOn) {  
+        perlinObj.regeneratePermutation();
+      }
+      else valueObj.regeneratePermutation();
       break;
     case 'q':
       modifyMode *= -1;
@@ -60,25 +66,56 @@ void keyTyped()
       }
       break;
     case 'u':
-      perlinObj.modifyOctave(1*modifyMode);
+      if (perlinOn) perlinObj.modifyOctave(1*modifyMode);
+      else valueObj.modifyOctave(1*modifyMode);
       break;
     case 'i':
-      perlinObj.modifyFrequency(0.001*modifyMode);
+      if (perlinOn) perlinObj.modifyFrequency(0.001*modifyMode);
+      else valueObj.modifyFrequency(0.001*modifyMode);
       break; 
     case 'o':
-      perlinObj.modifyAmplitude(1.0*modifyMode);
+      if (perlinOn) perlinObj.modifyAmplitude(1.0*modifyMode);
+      else valueObj.modifyAmplitude(1.0*modifyMode);
       break; 
     case 'p':
-      perlinObj.modifyAmplitudeDecay(0.1*modifyMode);
+      if (perlinOn) perlinObj.modifyAmplitudeDecay(0.1*modifyMode);
+      else valueObj.modifyAmplitudeDecay(0.1*modifyMode);
       break; 
     case '[':
-      perlinObj.modifyfrequencyGrowthRate(0.1*modifyMode);
+      if (perlinOn) perlinObj.modifyfrequencyGrowthRate(0.1*modifyMode);
+      else valueObj.modifyfrequencyGrowthRate(0.1*modifyMode);
       break; 
     case ' ':
-      perlinObj.changeTerrainMode();
+      if (perlinOn) perlinObj.changeTerrainMode();
+      else valueObj.changeTerrainMode();
       break;
     case 'z':
-      perlinObj.testRuntime();
+      if (perlinOn) perlinObj.testRuntime();
+      else valueObj.testRuntime();
+      break;
+    case 't':
+      if (perlinOn) {
+        perlinOn = false;
+        valueObj.updateNoise();
+        println("Switching to value noise.");
+      }
+      else {
+        perlinOn = true;
+        perlinObj.updateNoise();
+        println("Switching to Perlin noise.");
+      }
+      break;
+    case 'g':
+      for(int y = 0; y < height; y++) {
+       for(int x = 0; x < width; x++) {
+         float n = OpenSimplex2S.noise2(32205, x, y); 
+         n += 1.0;
+         n *= 0.5;
+         color pixelColor = color(Math.round(255*n));  
+         pixels[x + y*width] = pixelColor;
+       }
+      }
+      updatePixels();
       break;
     
   }

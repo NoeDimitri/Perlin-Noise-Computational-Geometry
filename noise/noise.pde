@@ -2,6 +2,7 @@ import java.util.*;
 import java.lang.Math;
 
 final Integer PERMUTATION_SIZE = 255;
+final Integer GRID_SIZE_BASE = 256;
 
 //public interface colorInterface{
  
@@ -12,6 +13,7 @@ final Integer PERMUTATION_SIZE = 255;
 public class Noise
 {
   private ArrayList<Integer> permutation;
+  private ArrayList<Float> gridValues;
   private Float amplitude;
   private Float frequency;
   private int numOctaves;
@@ -23,6 +25,7 @@ public class Noise
   Noise()
   {
       permutation = createPermutation();
+      gridValues = generateValues(GRID_SIZE_BASE);
       
       // Default values
       frequency = 0.005;
@@ -41,6 +44,7 @@ public class Noise
   Noise(float frequencyBase, float amplitudeBase, int numOctavesBase, float amplitudeDecayBase, float frequencyGrowthBase, int coloringMode, int noiseMode)
   {
       permutation = createPermutation();
+      gridValues = generateValues(GRID_SIZE_BASE);
       
       // Default values
       frequency = frequencyBase;
@@ -83,7 +87,7 @@ public class Noise
   // Lookup table for the cosntantVectors
   private PVector getConstantVector(Integer v)
   {
-    switch(v % 3)
+    switch(v % 4)
     {
       case 0:
         return new PVector(1.0, 1.0);
@@ -104,8 +108,8 @@ public class Noise
     return ((6*t - 15) * t + 10)*t*t*t; 
   }
   
-  // Function to call to generate a noise value
-  public float Noise2d(float x, float y)
+  // Function to call to generate a noise value using Perlin noise algorithm
+  public float perlinNoise2d(float x, float y)
   { 
     // For determining which cell we are in
     int X = (int)Math.floor(x) % PERMUTATION_SIZE;
@@ -140,18 +144,25 @@ public class Noise
     );
   }
 
-  // Generates Noise up to a certain octave
+  // Generates Perlin Noise up to a certain octave
   public Float octaveNoise(int x, int y, float amplitude, float frequency)
   {
     Float result = 0.0;
     for(int octave = 0; octave < numOctaves; octave++)
     {
-       float n = amplitude * Noise2d(x * frequency, y * frequency);
-       result += n;
+      float n;
+      if (noiseType == 0) { 
+        n = amplitude * perlinNoise2d(x * frequency, y * frequency);
+      }
+      else {
+        n = valueNoise2D(x, y, amplitude, frequency);
+      }
+      result += n;
        
        // two hyper parameters here, can maybe modify rate that these change
-       amplitude *= amplitudeDecayRate;
-       frequency *= frequencyGrowthRate;
+      amplitude *= amplitudeDecayRate;
+      frequency *= frequencyGrowthRate;
+      
       result = min(1, result);
       result = max(-1, result);
     }
@@ -161,6 +172,54 @@ public class Noise
     
     return result;
   }
+  
+  // Function generating random values for n x n grid, returning an ArrayList<Float> of randomly generated values of length n^2
+  public ArrayList<Float> generateValues(int n) {
+    ArrayList<Float> vals = new ArrayList<Float>();
+    Random rand = new Random();
+    
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        vals.add((rand.nextFloat() * 2) - 1);
+      }
+    }
+    return vals;
+  }
+  
+  // Function generating a noise value using Value noise algorithm
+  // Inputs: integers x and y (coordinates for input point)
+  //         float amplitude: affects the severity/intensity of the noise values
+  //         float frequency: affects the overall size of the picture / how much noise is being fit into the screen
+  // 
+  // Output: a float noise value to be used in the coloring functions later
+  public float valueNoise2D (int x, int y, float amplitude, float frequency) {
+    float transformedX = (float)(x) * frequency;
+    float transformedY = (float)(y) * frequency;
+    
+    // First, determine which grid cell that (x,y) is in
+    int gridX = (int)(transformedX % (GRID_SIZE_BASE));
+    int gridY = (int)(transformedY % (GRID_SIZE_BASE));
+    
+    // Now, determine the value of (x,y) based on interpolating from the values of the grid vertices
+    float topLeftVal, topRightVal, bottomLeftVal, bottomRightVal;
+    topLeftVal = gridValues.get((GRID_SIZE_BASE * gridY) + gridX);
+    topRightVal = gridX != GRID_SIZE_BASE - 1 ? gridValues.get((GRID_SIZE_BASE * gridY) + gridX + 1) : gridValues.get((GRID_SIZE_BASE * gridY));
+    bottomLeftVal = gridY != GRID_SIZE_BASE - 1 ? gridValues.get((GRID_SIZE_BASE * (gridY + 1)) + gridX) : gridValues.get(gridX);
+    bottomRightVal = gridX != GRID_SIZE_BASE - 1 ? (gridY != GRID_SIZE_BASE - 1 ? gridValues.get((GRID_SIZE_BASE * (gridY + 1)) + gridX + 1) : gridValues.get(gridX + 1)) : (gridY != GRID_SIZE_BASE - 1 ? gridValues.get((GRID_SIZE_BASE * (gridY+1))) : gridValues.get(0));
+    
+    float xOffset = (float)(transformedX - Math.floor(transformedX));
+    float yOffset = (float)(transformedY - Math.floor(transformedY));
+    
+    // Applying a smoothing function to the offsets
+    xOffset = xOffset * xOffset * (3 - (2 * xOffset));
+    yOffset = yOffset * yOffset * (3 - (2 * yOffset));
+    
+    return (amplitude * lerp(
+      lerp(topLeftVal, topRightVal, xOffset),
+      lerp(bottomLeftVal, bottomRightVal, xOffset),
+      yOffset
+    ));
+  }
 
   // Call this when you want to draw the noise to the screen
   public void updateNoise()
@@ -169,14 +228,13 @@ public class Noise
     {
        for(int x = 0; x < width; x++)
        {
-         
-          float n = octaveNoise(x, y, amplitude, frequency); 
-           n += 1.0;
-           n *= 0.5;
+         float n = octaveNoise(x, y, amplitude, frequency); 
+         n += 1.0;
+         n *= 0.5;
+
+         color pixelColor = selectColor(n);
            
-           color pixelColor = selectColor(n);
-           
-           pixels[x + y*width] = pixelColor;
+         pixels[x + y*width] = pixelColor;
            
        }
       
@@ -213,18 +271,19 @@ public class Noise
   {
     println("generating new permutation");
     permutation = createPermutation();
+    gridValues = generateValues(GRID_SIZE_BASE);
     updateNoise();
   }
   
   // Yoinked this code off the internet heheh
   public void testRuntime()
   {
-      long startTimeNanoSecond = System.nanoTime();
+      //long startTimeNanoSecond = System.nanoTime();
       long startTimeMilliSecond = System.currentTimeMillis();
       updateNoise();
-      long endTimeNanoSecond = System.nanoTime();
+      //long endTimeNanoSecond = System.nanoTime();
       long endTimeMilliSecond = System.currentTimeMillis();
-      System.out.println("Time Taken in "+(endTimeNanoSecond - startTimeNanoSecond) + " ns");
+      //System.out.println("Time Taken in "+(endTimeNanoSecond - startTimeNanoSecond) + " ns");
       System.out.println("Time Taken in "+(endTimeMilliSecond - startTimeMilliSecond) + " ms");
   }
   
@@ -234,53 +293,53 @@ public class Noise
   public void modifyOctave(int dif)
   {
       // add dif and make sure it's at least 1
-      perlinObj.numOctaves = max(numOctaves + dif, 1);
+      numOctaves = max(numOctaves + dif, 1);
       println("Modified number of octaves: " + numOctaves);
-      perlinObj.updateNoise();  
+      updateNoise();  
   }
   
   public void modifyFrequency(float dif)
   {
       
-      if (perlinObj.frequency + dif <= 0)
+      if (frequency + dif <= 0)
       {
          println("Error: Negative frequency");
          return;
       }
       frequency += dif;
       println(String.format("Modified frequency: %.3f", frequency));
-      perlinObj.updateNoise();  
+      updateNoise();  
   }
   
   public void modifyAmplitude(float dif)
   {
-      perlinObj.amplitude += dif;
+      amplitude += dif;
       println("Modified amplitude: " + amplitude);
-      perlinObj.updateNoise();  
+      updateNoise();  
   }
   
   public void modifyAmplitudeDecay(float dif)
   {
-      if (perlinObj.amplitudeDecayRate + dif <= 0)
+      if (amplitudeDecayRate + dif <= 0)
       {
          println("Error: invalid amplitude decay");
          return;
       }
-      perlinObj.amplitudeDecayRate += dif;
+      amplitudeDecayRate += dif;
       println(String.format("Modified amplitudeDecayRate: %.2f", amplitudeDecayRate));
-      perlinObj.updateNoise();  
+      updateNoise();  
   }
   
   public void modifyfrequencyGrowthRate(float dif)
   {
-      if (perlinObj.frequencyGrowthRate + dif <= 0)
+      if (frequencyGrowthRate + dif <= 0)
       {
          println("Error: invalid amplitude decay");
          return;
       }
-      perlinObj.frequencyGrowthRate += dif;
+      frequencyGrowthRate += dif;
       println(String.format("Modified frequencyGrowthRate: %.2f", frequencyGrowthRate));
-      perlinObj.updateNoise();  
+      updateNoise();  
   }
   
   public void changeTerrainMode()
