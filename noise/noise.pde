@@ -83,12 +83,12 @@ public class Noise
   // Lookup table for the cosntantVectors
   private PVector getConstantVector(Integer v)
   {
-    switch(v % 3)
+    switch(v % 2)
     {
       case 0:
-        return new PVector(1.0, 1.0);
+        return new PVector(-1.0, 0);
       case 1:
-        return new PVector(-1.0, 1.0);
+        return new PVector(1.0, 0);
       case 2:
         return new PVector(-1.0, -1.0);
       default:
@@ -105,48 +105,39 @@ public class Noise
   }
   
   // Function to call to generate a noise value
-  public float Noise2d(float x, float y)
+  public float Noise1d(float x)
   { 
     // For determining which cell we are in
     int X = (int)Math.floor(x) % PERMUTATION_SIZE;
-    int Y = (int)Math.floor(y) % PERMUTATION_SIZE;
     
     // Offset
     float xf = (float)(x-Math.floor(x));
-    float yf = (float)(y-Math.floor(y));
     
-    PVector topRight = new PVector(xf-1.0, yf-1.0);
-    PVector topLeft = new PVector(xf, yf-1.0);
-    PVector bottomRight = new PVector(xf-1.0, yf);
-    PVector bottomLeft = new PVector(xf, yf);
+    PVector topRight = new PVector(xf-1.0, 0);
+    PVector topLeft = new PVector(xf, 0);
     
-    Integer valueTopRight = permutation.get(permutation.get(X+1)+Y+1);
-    Integer valueTopLeft = permutation.get(permutation.get(X)+Y+1);
-    Integer valueBottomRight = permutation.get(permutation.get(X+1)+Y);
-    Integer valueBottomLeft = permutation.get(permutation.get(X)+Y);
+    Integer valueRight = permutation.get(permutation.get(X+1)+Y+1);
+    Integer valueLeft = permutation.get(permutation.get(X)+Y+1);
     
-    float dotTopRight = topRight.dot(getConstantVector(valueTopRight));
-    float dotTopLeft = topLeft.dot(getConstantVector(valueTopLeft));
-    float dotBottomRight = bottomRight.dot(getConstantVector(valueBottomRight));
-    float dotBottomLeft = bottomLeft.dot(getConstantVector(valueBottomLeft));
+    float dotRight = topRight.dot(getConstantVector(valueRight));
+    float dotLeft = topLeft.dot(getConstantVector(valueLeft));
     
     float u = Fade(xf);
-    float v = Fade(yf);
     
     return lerp(
-      lerp(dotBottomLeft, dotTopLeft, v),
-      lerp(dotBottomRight, dotTopRight, v),
+      dotLeft,
+      dotRight,
       u
     );
   }
 
   // Generates Noise up to a certain octave
-  public Float octaveNoise(int x, int y, float amplitude, float frequency)
+  public Float octaveNoise(int x, float amplitude, float frequency)
   {
     Float result = 0.0;
     for(int octave = 0; octave < numOctaves; octave++)
     {
-       float n = amplitude * Noise2d(x * frequency, y * frequency);
+       float n = amplitude * Noise1d(x * frequency);
        result += n;
        
        // two hyper parameters here, can maybe modify rate that these change
@@ -165,20 +156,19 @@ public class Noise
   // Call this when you want to draw the noise to the screen
   public void updateNoise()
   {
-    for(int y = 0; y < height; y++)
+    background(255);
+    for(int x = 0; x < width; x++)
     {
-       for(int x = 0; x < width; x++)
-       {
+
          
-          float n = octaveNoise(x, y, amplitude, frequency); 
-           n += 1.0;
-           n *= 0.5;
-           
-           color pixelColor = selectColor(n);
-           
-           pixels[x + y*width] = pixelColor;
-           
-       }
+        float n = octaveNoise(x,amplitude, frequency); 
+         n += 1.0;
+         n *= 0.5;
+         
+         color pixelColor = selectColor(n);
+         
+         pixels[x + ((int)Math.floor(height/2.0 - (n*height/2.0)) + 5)*width] = pixelColor;
+
       
     }
     updatePixels();
