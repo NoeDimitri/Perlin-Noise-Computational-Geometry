@@ -9,7 +9,7 @@ final Integer PERMUTATION_SIZE = 255;
   
 //}
 
-public class Perlin
+public class Noise
 {
   private ArrayList<Integer> permutation;
   private Float amplitude;
@@ -18,8 +18,9 @@ public class Perlin
   private float amplitudeDecayRate;
   private float frequencyGrowthRate;
   private int colorMode;
+  private int noiseType;
   
-  Perlin()
+  Noise()
   {
       permutation = createPermutation();
       
@@ -33,10 +34,11 @@ public class Perlin
       frequencyGrowthRate = 2.0;
       
       colorMode = 2;
+      noiseType = 0;
     
   }
   
-  Perlin(float frequencyBase, float amplitudeBase, int numOctavesBase)
+  Noise(float frequencyBase, float amplitudeBase, int numOctavesBase, float amplitudeDecayBase, float frequencyGrowthBase, int coloringMode, int noiseMode)
   {
       permutation = createPermutation();
       
@@ -44,6 +46,15 @@ public class Perlin
       frequency = frequencyBase;
       amplitude =  amplitudeBase;
       numOctaves = numOctavesBase;
+      
+      amplitudeDecayRate = amplitudeDecayBase;
+      frequencyGrowthRate = frequencyGrowthBase;
+      
+      // For colorMode: 0 = noise, 1 = caves, 2 = lakes
+      colorMode = coloringMode;
+      
+      // For noiseType: 0 = Perlin, 1 = Value
+      noiseType = noiseMode;
   }
   
   // For creating and shuffling permutation array List
@@ -210,6 +221,7 @@ public class Perlin
   {
       long startTimeNanoSecond = System.nanoTime();
       long startTimeMilliSecond = System.currentTimeMillis();
+      updateNoise();
       long endTimeNanoSecond = System.nanoTime();
       long endTimeMilliSecond = System.currentTimeMillis();
       System.out.println("Time Taken in "+(endTimeNanoSecond - startTimeNanoSecond) + " ns");
