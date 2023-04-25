@@ -6,10 +6,10 @@ boolean perlinOn;
 // Defaults for the noise objects
 Float amplitudeDefault = .005;
 Float frequencyDefault = 2.0;
-int numOctavesDefault = 3;
+int numOctavesDefault = 1;
 float amplitudeDecayRateDefault = 0.5;
 float frequencyGrowthRateDefault = 2.0;
-int colorModeDefault = 2; // 0 = basic noise, 1 = caves, 2 = lakes
+int colorModeDefault = 0; // 0 = basic noise, 1 = caves, 2 = lakes
 int noiseTypeDefault = 0; // 0 = Perlin noise, 1 = Value noise
 
 void setup()
