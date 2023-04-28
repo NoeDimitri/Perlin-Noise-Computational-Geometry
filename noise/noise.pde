@@ -4,11 +4,9 @@ import java.lang.Math;
 final Integer PERMUTATION_SIZE = 255;
 final Integer GRID_SIZE_BASE = 256;
 
-//public interface colorInterface{
- 
-//  color selectColor(int value);
-  
-//}
+// Much of the perlin noise code was sourced from the following blog post!
+// I'll leave comments above the code that came from these posts.
+// https://rtouti.github.io/graphics/perlin-noise-algorithm
 
 public class Noise
 {
@@ -62,6 +60,7 @@ public class Noise
   }
   
   // For creating and shuffling permutation array List
+  // Sourced from blog post
   public ArrayList<Integer> createPermutation()
   {
   ArrayList<Integer> permutation = new ArrayList<Integer>();
@@ -85,6 +84,7 @@ public class Noise
   
   
   // Lookup table for the cosntantVectors
+  // Modified from original blog post
   private PVector getConstantVector(Integer v)
   {
     switch(v % 4)
@@ -103,12 +103,15 @@ public class Noise
   }
   
   // Ease curve for assigning a interpolation value
+  // From Ken Perlin's originally blog post
   public float Fade(float t)
   {
+    //return t;
     return ((6*t - 15) * t + 10)*t*t*t; 
   }
   
   // Function to call to generate a noise value using Perlin noise algorithm
+  // Sourced largely from blog post
   public float perlinNoise2d(float x, float y)
   { 
     // For determining which cell we are in
@@ -145,6 +148,7 @@ public class Noise
   }
 
   // Generates Perlin Noise up to a certain octave
+  // Modified variant from blog post
   public Float octaveNoise(int x, int y, float amplitude, float frequency)
   {
     Float result = 0.0;
